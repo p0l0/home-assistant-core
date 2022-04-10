@@ -42,6 +42,7 @@ from homeassistant.const import (
     CONF_DELAY,
     CONF_DEVICE_ID,
     CONF_DOMAIN,
+    CONF_ELSE,
     CONF_ENTITY_ID,
     CONF_ENTITY_NAMESPACE,
     CONF_EVENT,
@@ -49,6 +50,7 @@ from homeassistant.const import (
     CONF_EVENT_DATA_TEMPLATE,
     CONF_FOR,
     CONF_ID,
+    CONF_IF,
     CONF_PLATFORM,
     CONF_REPEAT,
     CONF_SCAN_INTERVAL,
@@ -58,6 +60,7 @@ from homeassistant.const import (
     CONF_SERVICE_TEMPLATE,
     CONF_STATE,
     CONF_TARGET,
+    CONF_THEN,
     CONF_TIMEOUT,
     CONF_UNIT_SYSTEM_IMPERIAL,
     CONF_UNIT_SYSTEM_METRIC,
@@ -1413,6 +1416,15 @@ _SCRIPT_WAIT_FOR_TRIGGER_SCHEMA = vol.Schema(
     }
 )
 
+_SCRIPT_IF_SCHEMA = vol.Schema(
+    {
+        **SCRIPT_ACTION_BASE_SCHEMA,
+        vol.Required(CONF_IF): vol.All(ensure_list, [CONDITION_SCHEMA]),
+        vol.Required(CONF_THEN): SCRIPT_SCHEMA,
+        vol.Optional(CONF_ELSE): SCRIPT_SCHEMA,
+    }
+)
+
 _SCRIPT_SET_SCHEMA = vol.Schema(
     {
         **SCRIPT_ACTION_BASE_SCHEMA,
@@ -1431,6 +1443,7 @@ SCRIPT_ACTION_REPEAT = "repeat"
 SCRIPT_ACTION_CHOOSE = "choose"
 SCRIPT_ACTION_WAIT_FOR_TRIGGER = "wait_for_trigger"
 SCRIPT_ACTION_VARIABLES = "variables"
+SCRIPT_ACTION_IF = "if"
 
 
 def determine_script_action(action: dict[str, Any]) -> str:
@@ -1465,6 +1478,9 @@ def determine_script_action(action: dict[str, Any]) -> str:
     if CONF_VARIABLES in action:
         return SCRIPT_ACTION_VARIABLES
 
+    if CONF_IF in action:
+        return SCRIPT_ACTION_IF
+
     if CONF_SERVICE in action or CONF_SERVICE_TEMPLATE in action:
         return SCRIPT_ACTION_CALL_SERVICE
 
@@ -1483,6 +1499,7 @@ ACTION_TYPE_SCHEMAS: dict[str, Callable[[Any], dict]] = {
     SCRIPT_ACTION_CHOOSE: _SCRIPT_CHOOSE_SCHEMA,
     SCRIPT_ACTION_WAIT_FOR_TRIGGER: _SCRIPT_WAIT_FOR_TRIGGER_SCHEMA,
     SCRIPT_ACTION_VARIABLES: _SCRIPT_SET_SCHEMA,
+    SCRIPT_ACTION_IF: _SCRIPT_IF_SCHEMA,
 }
 
 
